@@ -41,6 +41,8 @@ import re
 import sys
 import tarfile
 
+import json
+
 import numpy as np
 from six.moves import urllib
 import tensorflow as tf
@@ -48,7 +50,7 @@ import tensorflow as tf
 FLAGS = None
 
 # pylint: disable=line-too-long
-DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
+DATA_URL = 'https://storage.googleapis.com/download.tensorflow.org/models/tflite/model_zoo/upload_20180427/inception_resnet_v2_2018_04_27.tgz'
 # pylint: enable=line-too-long
 
 
@@ -161,17 +163,22 @@ def run_inference_on_image(image):
     node_lookup = NodeLookup()
 
     top_k = predictions.argsort()[-FLAGS.num_top_predictions:][::-1]
-    string = ""
+
+    tags = {}
+    tags[str(os.path.splitext(image)[0])] = {}
     for node_id in top_k:
       human_string = node_lookup.id_to_string(node_id)
       score = predictions[node_id]
-      string += os.path.splitext(image)[0] + ": {" + node_lookup.id_to_string(node_id) + ':' + str(score) + '},\n'
+      if score > 0.01:
+        result = {}
+        result[node_lookup.id_to_string(node_id)] = str(score)
+        tags[os.path.splitext(image)[0]] = result
       print('%s (score = %.5f)' % (human_string, score))
 
-    add_tags(string)
+    add_tags(image, json.dumps(tags))
 
-def add_tags(result):
-  f = open("tags.json", "a")
+def add_tags(image, result):
+  f = open(str(os.path.splitext(image)[0]) + ".json", "+w")
   f.write(result)
   f.close()
 
