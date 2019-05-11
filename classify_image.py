@@ -165,7 +165,7 @@ def run_inference_on_image(image):
     for node_id in top_k:
       human_string = node_lookup.id_to_string(node_id)
       score = predictions[node_id]
-      string += node_lookup.id_to_string(node_id) + ':' + str(score) + ',\n'
+      string += os.path.splitext(image)[0] + ": {" + node_lookup.id_to_string(node_id) + ':' + str(score) + '},\n'
       print('%s (score = %.5f)' % (human_string, score))
 
     add_tags(string)
