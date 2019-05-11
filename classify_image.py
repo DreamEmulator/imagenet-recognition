@@ -50,7 +50,10 @@ import tensorflow as tf
 FLAGS = None
 
 # pylint: disable=line-too-long
-DATA_URL = 'https://storage.googleapis.com/download.tensorflow.org/models/tflite/model_zoo/upload_20180427/inception_resnet_v2_2018_04_27.tgz'
+# DATA_URL = 'https://storage.googleapis.com/download.tensorflow.org/models/tflite/model_zoo/upload_20180427/inception_resnet_v2_2018_04_27.tgz'
+# DATA_URL = 'http://download.tensorflow.org/models/object_detection/faster_rcnn_resnet50_coco_2018_01_28.tar.gz'
+# DATA_URL = 'http://download.tensorflow.org/models/official/20181001_resnet/checkpoints/resnet_imagenet_v1_fp16_20181001.tar.gz'
+DATA_URL = 'http://download.tensorflow.org/models/object_detection/faster_rcnn_nas_coco_2018_01_28.tar.gz'
 # pylint: enable=line-too-long
 
 
@@ -164,21 +167,17 @@ def run_inference_on_image(image):
 
     top_k = predictions.argsort()[-FLAGS.num_top_predictions:][::-1]
 
-    tags = {}
-    tags[str(os.path.splitext(image)[0])] = {}
+    tags = ""
     for node_id in top_k:
       human_string = node_lookup.id_to_string(node_id)
       score = predictions[node_id]
-      if score > 0.01:
-        result = {}
-        result[node_lookup.id_to_string(node_id)] = str(score)
-        tags[os.path.splitext(image)[0]] = result
+      tags += '%s (score = %.5f)' % (human_string, score) + "\n"
       print('%s (score = %.5f)' % (human_string, score))
 
-    add_tags(image, json.dumps(tags))
+    add_tags(image, tags)
 
 def add_tags(image, result):
-  f = open(str(os.path.splitext(image)[0]) + ".json", "+w")
+  f = open(str(os.path.splitext(image)[0]) + ".txt", "+w")
   f.write(result)
   f.close()
 
